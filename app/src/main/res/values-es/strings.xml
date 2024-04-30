@@ -1,3 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="said">dijo</string>
+    <string name="log_in">Logearse</string>
+    <string name="get_token">Obtener token</string>
+    <string name="oauth">Token Oauth</string>
 </resources>
