@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name" translatable="false">TwitchChatTTS</string>
+    <string name="said">said</string>
+    <string name="OauthObtainerURL" translatable="false">https://twitchapps.com/tmi/</string>
+    <string name="TwitchOauthValidateURL" translatable="false">https://id.twitch.tv/oauth2/validate</string>
+    <string name="log_in">Log In</string>
+    <string name="get_token">Get Token</string>
+    <string name="oauth">Oauth token</string>
+</resources>
