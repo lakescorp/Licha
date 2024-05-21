@@ -36,7 +36,6 @@ public class MainActivity extends AppCompatActivity implements TwitchAPI.Callbac
             // Do something in response to button click
             Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.OauthObtainerURL)));
             startActivity(browserIntent);
-
         });
 
         // Log in to the chat

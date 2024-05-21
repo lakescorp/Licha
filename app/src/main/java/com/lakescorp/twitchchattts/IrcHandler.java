@@ -1,6 +1,7 @@
 package com.lakescorp.twitchchattts;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Looper;
 import android.speech.tts.TextToSpeech;
@@ -16,6 +17,7 @@ import com.vdurmont.emoji.EmojiParser;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -26,15 +28,44 @@ class IrcHandler{
     TextView chatView;
     TextToSpeech tts;
     String lastUser = "";
-    ArrayList<String> ignore = new ArrayList<>();
-    private ExecutorService executorService = Executors.newSingleThreadExecutor();
+    ArrayList<String> chatHistory = new ArrayList<>();
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+    // Filter out messages from these users
+    ArrayList<String> ignoredUsers = new ArrayList<>();
+    boolean ignoreNormalUsers = false;
+    boolean ignoreSubscribers = false;
+    boolean ignoreModerators = false;
+
+
+    public IrcHandler(TextView chatView, Context context) {
+        this.chatView = chatView;
+        this.context = context.getApplicationContext();
+
+        SharedPreferences sharedPreferences = context.getSharedPreferences("Settings", Context.MODE_PRIVATE);
+        String ignoredUsersString = sharedPreferences.getString("ignoredUsers", "");
+        String ignoredRolesString = sharedPreferences.getString("ignoredRoles", "");
+        ignoreNormalUsers = sharedPreferences.getBoolean("ignoreNormalUsers", false);
+        ignoreSubscribers = sharedPreferences.getBoolean("ignoreSubscribers", false);
+        ignoreModerators = sharedPreferences.getBoolean("ignoreModerators", false);
+
+        if (!ignoredUsersString.isEmpty()) ignoredUsers.addAll(Arrays.asList(ignoredUsersString.split(",")));
+        if (!ignoredRolesString.isEmpty()) ignoredUsers.addAll(Arrays.asList(ignoredRolesString.split(",")));
+
+        ignoredUsers.add("nightbot"); // Ignore Nightbot user messages
+
+        tts = new TextToSpeech(context, status -> {
+            if (status != TextToSpeech.ERROR) {
+                tts.setLanguage(Locale.getDefault());
+            }
+        });
+    }
 
     /**
      * Removes emotes from a message
      * @param message The message to clean
      * @return The message with emotes removed
      */
-    String cleanEmotes(TwitchMessage message) {
+    private String cleanEmotes(TwitchMessage message) {
         String ret = message.getContent();
         for (Emote emote : message.getEmotes()) {
             ret = ret.replace(emote.getPattern(), "");
@@ -43,16 +74,17 @@ class IrcHandler{
         return ret;
     }
 
-    public IrcHandler(TextView chatView, Context context) {
-        this.chatView = chatView;
-        ignore.add("nightbot"); // Ignore Nightbot user messages
-        this.context = context.getApplicationContext();
 
-        tts = new TextToSpeech(context, status -> {
-            if (status != TextToSpeech.ERROR) {
-                tts.setLanguage(Locale.getDefault());
-            }
-        });
+    private void addMessage(String senderName, String message) {
+        chatHistory.add(senderName  + ": " + message);
+        if (chatHistory.size() > 100) chatHistory.remove(0);
+        chatView.setText(String.join("\n", chatHistory));
+    }
+
+    private boolean isIgnoredByRole(TwitchUser sender) {
+        if (sender.isSub()) return ignoreSubscribers;
+        if (sender.isMod()) return ignoreModerators;
+        return ignoreNormalUsers;
     }
 
     /**
@@ -66,14 +98,14 @@ class IrcHandler{
                 twirk.addIrcListener(new TwirkListener() {
 
                     public void onPrivMsg(TwitchUser sender, TwitchMessage message) {
-                        if (ignore.contains(sender.getDisplayName().toLowerCase())) return; // Ignore messages from ignored users
+                        if (ignoredUsers.contains(sender.getDisplayName().toLowerCase())) return; // Ignore messages from ignored users
 
                         if (message.getContent().startsWith("!")) return; // Ignore messages starting with "!"
 
                         // Update the chat view with the new message
-                        new Handler(Looper.getMainLooper()).post(() -> {
-                            chatView.setText(chatView.getText() + "\n" + sender.getDisplayName() + ": " + message.getContent());
-                        });
+                        new Handler(Looper.getMainLooper()).post(() -> addMessage(sender.getDisplayName(), message.getContent()));
+
+                        if(isIgnoredByRole(sender)) return; // Ignore messages from ignored roles
 
                         String toSpeak;
                         String cleanMessage = cleanEmotes(message);
@@ -96,6 +128,8 @@ class IrcHandler{
             }
         });
     }
+
+
 
     public void stop() {
         executorService.shutdownNow();

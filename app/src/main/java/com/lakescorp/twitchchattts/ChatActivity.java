@@ -1,5 +1,6 @@
 package com.lakescorp.twitchchattts;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.WindowManager;
 import android.widget.TextView;
@@ -19,6 +20,12 @@ public class ChatActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_chat);
         textView = (TextView) findViewById(R.id.chatText) ;
+
+        findViewById(R.id.settings_button).setOnClickListener(v -> {
+            // Open the settings activity
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
+        });
 
         // Get the username and oauth from the intent
         Bundle extras = getIntent().getExtras();

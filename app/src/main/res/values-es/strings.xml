@@ -4,4 +4,10 @@
     <string name="log_in">Logearse</string>
     <string name="get_token">Obtener token</string>
     <string name="oauth">Token Oauth</string>
+    <string name="welcome_to">Bienvenido a</string>
+    <string name="role_filter">Ignorar por rol</string>
+    <string name="log_out">Cerrar sesión</string>
+    <string name="moderator">Moderador</string>
+    <string name="normal_user">Usuario normal</string>
+    <string name="suscriber">Suscriptor</string>
 </resources>

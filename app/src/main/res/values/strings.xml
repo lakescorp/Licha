@@ -6,4 +6,10 @@
     <string name="log_in">Log In</string>
     <string name="get_token">Get Token</string>
     <string name="oauth">Oauth token</string>
+    <string name="welcome_to">Welcome to</string>
+    <string name="role_filter">Ignore by role</string>
+    <string name="log_out">Log Out</string>
+    <string name="moderator">Moderator</string>
+    <string name="normal_user">Normal user</string>
+    <string name="suscriber">Suscriber</string>
 </resources>
